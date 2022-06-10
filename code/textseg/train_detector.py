@@ -1,5 +1,5 @@
 from textseg.utils import read_config
-from textseg.detectron_trainer import register_dataset, build_config, MyTrainer
+from textseg.trainer import register_dataset, build_config, MyTrainer
 
 def train():
     proj_config = read_config()
@@ -12,11 +12,11 @@ def train():
 
     register_dataset(train_dataset_name, train_json, train_img_root)
     register_dataset(val_dataset_name, val_json, val_img_root)
-    model_zoo_config_name = proj_config['detectron2']['model_zoo_config_name']
-    model_checkout_dir = proj_config['detectron2']['model_checkout_dir']
+    # model_zoo_config_name = proj_config['detectron2']['model_zoo_config_name']
+    # model_checkout_dir = proj_config['detectron2']['model_checkout_dir']
 
     # Detectron config
-    cfg = build_config(model_zoo_config_name, train_dataset_name, val_dataset_name, model_checkout_dir, proj_config)
+    cfg = build_config(train_dataset_name, val_dataset_name, proj_config)
     trainer = MyTrainer(cfg)
     trainer.resume_or_load(resume=False)
     trainer.train()
