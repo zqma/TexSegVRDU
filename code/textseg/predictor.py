@@ -6,13 +6,12 @@ import detectron2.data.transforms as T
 import torch
 from typing import List
 import numpy as np
+from textseg.utils import read_config, read_im
 
 
 config = read_config()
 cfg = build_config(None, None, config)
-model = build_model(cfg)
 
-model.eval()
 
 class MyPredictor:
     """
@@ -54,7 +53,7 @@ class MyPredictor:
         self.input_format = cfg.INPUT.FORMAT
         assert self.input_format in ["RGB", "BGR"], self.input_format
 
-    def __call__(self, original_images:List[np.ndarray]):
+    def __call__(self, original_images: List[np.ndarray]):
         """
         Args:
             original_image (np.ndarray): an image of shape (H, W, C) (in BGR order).
@@ -65,11 +64,13 @@ class MyPredictor:
         """
         inputs = []
         for original_image in original_images:
+            print(self.input_format)
             if self.input_format == "RGB":
                 # whether the model expects BGR inputs or RGB
                 original_image = original_image[:, :, ::-1]
             height, width = original_image.shape[:2]
-            image = self.aug.get_transform(original_image).apply_image(original_image)
+            image = self.aug.get_transform(
+                original_image).apply_image(original_image)
             image = torch.as_tensor(image.astype("float32").transpose(2, 0, 1))
             input = {"image": image, "height": height, "width": width}
             inputs.append(input)
@@ -80,12 +81,15 @@ class MyPredictor:
             return predictions
 
 
+def detect_segments(predictor: MyPredictor, image_paths: List[str], batch_size):
 
+    images = []
+    outputs = []
+    for i in range(0, len(image_paths), batch_size):
+        for image_path in image_paths[i: i + batch_size]:
+            images.append(read_im(image_path))
+            batch_output = [output['instances'].to(
+                "cpu") for output in predictor(images)]
+            outputs.extend(batch_output)
 
-
-
-
-
-
-
-
+    return outputs
