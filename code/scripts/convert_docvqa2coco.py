@@ -3,17 +3,6 @@ import json
 from pathlib import Path
 from textseg.utils import read_config
 
-coco_json = {
-    "info": {"name": "DocVQA", "format": "COCO"},
-    "licenses": [],
-    "images": [],
-    "annotations": [],
-    "categories": [{'supercategory': '', 'id': 1, 'name': 'text'},
-                   {'supercategory': '', 'id': 2, 'name': 'title'},
-                   {'supercategory': '', 'id': 3, 'name': 'list'},
-                   {'supercategory': '', 'id': 4, 'name': 'table'},
-                   {'supercategory': '', 'id': 5, 'name': 'figure'}]}
-
 
 def compute_bbx(four_coordinates):
     x = min(four_coordinates[0::2])
@@ -26,6 +15,16 @@ def compute_bbx(four_coordinates):
 
 
 def docvqa2coco(docvqa_json_folder):
+    coco_json = {
+        "info": {"name": "DocVQA", "format": "COCO"},
+        "licenses": [],
+        "images": [],
+        "annotations": [],
+        "categories": [{'supercategory': '', 'id': 1, 'name': 'text'},
+                       {'supercategory': '', 'id': 2, 'name': 'title'},
+                       {'supercategory': '', 'id': 3, 'name': 'list'},
+                       {'supercategory': '', 'id': 4, 'name': 'table'},
+                       {'supercategory': '', 'id': 5, 'name': 'figure'}]}
 
     for f in glob.glob(f"{docvqa_json_folder}/*.json"):
 
@@ -59,15 +58,15 @@ def docvqa2coco(docvqa_json_folder):
             }
             annotations.append(anno_dict)
         coco_json['annotations'].extend(annotations)
+    return coco_json
 
 
 if __name__ == "__main__":
     config = read_config()
     val_json = docvqa2coco(f"{config['docvqa']['data_root']}/val/ocr_results")
-    json.dump(val_json, open(f"{config['docvqa']['data_root']}/val/val_coco.json", "w"))
-    train_json = docvqa2coco(f"{config['docvqa']['data_root']}/train/ocr_results")
-    json.dump(train_json, open(f"{config['docvqa']['data_root']}/train/train_coco.json", "w"))
-
-
-
-
+    json.dump(val_json, open(
+        f"{config['docvqa']['data_root']}/val/val_coco.json", "w"))
+    train_json = docvqa2coco(
+        f"{config['docvqa']['data_root']}/train/ocr_results")
+    json.dump(train_json, open(
+        f"{config['docvqa']['data_root']}/train/train_coco.json", "w"))

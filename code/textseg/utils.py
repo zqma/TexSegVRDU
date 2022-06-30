@@ -6,6 +6,7 @@ from config import ROOT_DIR, CONFIG_DIR
 from PIL import Image
 import cv2
 
+
 def read_config():
     config = configparser.ConfigParser()
     config.read(CONFIG_DIR/"config.ini")
