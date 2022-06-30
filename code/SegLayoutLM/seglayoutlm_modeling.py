@@ -1,5 +1,6 @@
 from torch import nn
-
+import torch
+import math
 
 class SegLayoutLMSelfAttention(nn.Module):
     def __int__(self, config):
@@ -47,3 +48,45 @@ class SegLayoutLMSelfAttention(nn.Module):
             k = self.key(hidden_states)
             v = self.value(hidden_states)
         return q, k, v
+
+    def forward(
+            self,
+            hidden_states,
+            attention_mask=None,
+            head_mask=None,
+            output_attentions=False,
+            rel_pos=None,
+            rel_2d_pos=None,
+    ):
+        q, k, v = self.compute_qkv(hidden_states)
+
+        # (B, L, H*D) -> (B, H, L, D)
+        query_layer = self.transpose_for_scores(q)
+        key_layer = self.transpose_for_scores(k)
+        value_layer = self.transpose_for_scores(v)
+
+        query_layer = query_layer / math.sqrt(self.attention_head_size)
+        # [BSZ, NAT, L, L]
+        attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
+        if self.has_relative_attention_bias:
+            attention_scores += rel_pos
+        if self.has_spatial_attention_bias:
+            attention_scores += rel_2d_pos
+        attention_scores = attention_scores.float().masked_fill_(attention_mask.to(torch.bool), float("-inf"))
+        attention_probs = nn.functional.softmax(attention_scores, dim=-1, dtype=torch.float32).type_as(value_layer)
+        # This is actually dropping out entire tokens to attend to, which might
+        # seem a bit unusual, but is taken from the original Transformer paper.
+        attention_probs = self.dropout(attention_probs)
+
+        # Mask heads if we want to
+        if head_mask is not None:
+            attention_probs = attention_probs * head_mask
+
+        context_layer = torch.matmul(attention_probs, value_layer)
+        context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
+        new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
+        context_layer = context_layer.view(*new_context_layer_shape)
+
+        outputs = (context_layer, attention_probs) if output_attentions else (context_layer,)
+        return outputs
+

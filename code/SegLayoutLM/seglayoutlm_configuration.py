@@ -27,8 +27,8 @@ class SegLayoutLMConfig(PretrainedConfig):
             convert_sync_batchnorm=True,
             coordinate_size=128,
             shape_size=128,
-            has_relative_attention_bias=True,
-            has_spatial_attention_bias=True,
+            has_relative_attention_bias=False,
+            has_spatial_attention_bias=False,
             **kwargs
     ):
         super().__init__(
