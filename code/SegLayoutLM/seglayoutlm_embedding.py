@@ -19,7 +19,7 @@ class SegLayoutLMEmbedding(nn.Module):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.register_buffer("position_ids", torch.arange(config.max_position_embeddings).expand((1, -1)))
 
-    def _calc_seg_embeddings(self, input_ids, segment_ids):
+    def _calc_seg_text_embeddings(self, input_ids, segment_ids):
         """
 
         Args:
@@ -66,6 +66,3 @@ class SegLayoutLMEmbedding(nn.Module):
         )
         return spatial_position_embeddings
 
-
-
-        

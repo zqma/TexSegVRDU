@@ -29,6 +29,7 @@ class SegLayoutLMConfig(PretrainedConfig):
             shape_size=128,
             has_relative_attention_bias=False,
             has_spatial_attention_bias=False,
+            has_segment_seg_embedding=True,
             **kwargs
     ):
         super().__init__(
@@ -58,4 +59,5 @@ class SegLayoutLMConfig(PretrainedConfig):
         self.coordinate_size = coordinate_size,
         self.shape_size = shape_size,
         self.has_relative_attention_bias = has_relative_attention_bias,
-        self.has_spatial_attention_bias = has_spatial_attention_bias
+        self.has_spatial_attention_bias = has_spatial_attention_bias,
+        self.has_segment_seg_embedding = has_segment_seg_embedding
